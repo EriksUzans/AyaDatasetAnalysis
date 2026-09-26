@@ -128,8 +128,8 @@ This project set out to answer a simple question: **is the Aya dataset as multil
 
 - `languagedatasetipynb.ipynb` — full analysis notebook (pandas/matplotlib)
 - `images/` — exported charts used in this write-up
+- python file with the code used in this project
 
-*Feel free to reach out or open an issue with questions about the methodology.*
 ## Interactive Dashboard
 
 [![Aya dataset — annotators per language](https://public.tableau.com/static/images/Bo/Book1_17904291228110/Sheet2/1.png)](https://public.tableau.com/views/Book1_17904291228110/Sheet2?:showVizHome=no)
