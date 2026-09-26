@@ -130,9 +130,9 @@ This project set out to answer a simple question: **is the Aya dataset as multil
 - `images/` — exported charts used in this write-up
 
 *Feel free to reach out or open an issue with questions about the methodology.*
+## Interactive Dashboard
 
+[![Aya dataset — annotators per language](https://public.tableau.com/static/images/Bo/Book1_17904291228110/Sheet2/1.png)](https://public.tableau.com/views/Book1_17904291228110/Sheet2?:showVizHome=no)
 
-<iframe src="[https://public.tableau.com/views/YOUR_WORKBOOK/DASHBOARD?:showVizHome=no&:embed=true](https://public.tableau.com/views/Book1_17904291228110/Sheet2?:language=en-US&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link)"
-        width="100%" height="800" frameborder="0"></iframe>
-
+*Click the image to open the interactive version on Tableau Public.*
 
