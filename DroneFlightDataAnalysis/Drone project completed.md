@@ -133,7 +133,7 @@ for c in text_cols:
 Effect: Nullified 1 altitude outlier, 2 negative payloads, 1 wind outlier, 0 battery violations.
 
 
-###Removing outliers and invalid sensor readings
+### Removing outliers and invalid sensor readings
 Dropped or nullified physically impossible values that indicate sensor error or data entry mistakes.
 
 ```python
@@ -151,7 +151,7 @@ df = df[df['Battery Remaining (%)'].between(0, 100)]
 ```
 Effect: Nullified 1 altitude outlier, 2 negative payloads, 1 wind outlier, 0 battery violations.
 
-###Removing duplicates
+### Removing duplicates
 ```python
 # Key = all columns except Drone ID
 key_cols = [c for c in df.columns if c != 'Drone ID']
@@ -159,7 +159,7 @@ df = df.drop_duplicates(subset=key_cols, keep='first')
 ```
 Effect: Removed approximately 15 duplicate flight records (including the 6 repeat rows of D249 and the D058/D092/D093 etc. re-logged pairs).
 
-###Flagging overweight flights instead of deleting them
+### Flagging overweight flights instead of deleting them
 
 ```python
 df['Overweight'] = df['Actual Carry Weight (kg)'] > df['Max Carry Weight (kg)']
@@ -169,7 +169,7 @@ Effect: Flagged 3 overweight flights (D026, D033, D084) for use in Section 3.
 
 
 
-Final row count
+### Final row count
 Stage	Rows remaining
 Raw file	819
 After dropping blank rows	818
