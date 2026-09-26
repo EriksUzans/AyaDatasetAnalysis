@@ -110,11 +110,11 @@ The dashed orange line marks the 10% battery reserve threshold — the operation
 - **Hard limit**: Never exceed max carry weight
 
     
-##Cleaning Deep Dive
+## Cleaning Deep Dive
 The following subsections document every data cleaning decision made to the raw DroneLog.csv file, with the code used and the rationale behind each step. Each transformation is applied before any analysis, and the effect on the row count is tracked.
 
 
-###Removing incomplete rows
+### Removing incomplete rows
 Dropped any record missing critical identifying fields (Drone ID, Flight Date, or Battery Remaining (%)) — these fields are required for grouping and target-variable analysis.
 ```python
 # Remove fully blank rows (the CSV contained stray empty lines)
@@ -170,11 +170,7 @@ Effect: Flagged 3 overweight flights (D026, D033, D084) for use in Section 3.
 
 
 ### Final row count
-Stage	Rows remaining
+
 Raw file	819
-After dropping blank rows	818
-After dropping incomplete critical fields	818
-After outlier nullification	818 (values nullified, not deleted)
-After deduplication	~803
-After battery range filter	~803
+
 Final dataset	~803 rows
