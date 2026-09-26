@@ -108,17 +108,15 @@ The dashed orange line marks the 10% battery reserve threshold — the operation
 - **Battery policy**: Reserve 20% minimum, 30% in adverse conditions
     
 - **Hard limit**: Never exceed max carry weight
+
     
-
-
-
-Cleaning Deep Dive
+##Cleaning Deep Dive
 The following subsections document every data cleaning decision made to the raw DroneLog.csv file, with the code used and the rationale behind each step. Each transformation is applied before any analysis, and the effect on the row count is tracked.
 
-Removing incomplete rows
-Dropped any record missing critical identifying fields (Drone ID, Flight Date, or Battery Remaining (%)) — these fields are required for grouping and target-variable analysis.
 
-python
+###Removing incomplete rows
+Dropped any record missing critical identifying fields (Drone ID, Flight Date, or Battery Remaining (%)) — these fields are required for grouping and target-variable analysis.
+```python
 # Remove fully blank rows (the CSV contained stray empty lines)
 df = df.dropna(how='all').copy()
 
@@ -131,43 +129,45 @@ text_cols = ['Drone ID', 'Application', 'Drone Size', 'Drone Model',
              'Flight Status', 'Regulatory Approval ID', 'Notes']
 for c in text_cols:
     df[c] = df[c].astype(str).str.strip()
-Effect: Removed 1 blank row (between D242 and D243) and 0 incomplete ID/date rows.
-
-Removing outliers and invalid sensor readings
-Dropped or nullified physically impossible values that indicate sensor error or data entry mistakes.
-
-<img width="766" height="339" alt="image" src="https://github.com/user-attachments/assets/870f3851-9147-46b9-a7fb-026f7107b9f6" />
-
+```
 Effect: Nullified 1 altitude outlier, 2 negative payloads, 1 wind outlier, 0 battery violations.
 
-Handling missing flight duration
-Replaced missing Flight Duration values with the median duration for the same Drone Model, so that a CropMaster missing duration gets the CropMaster median rather than the fleet-wide median.
-<img width="628" height="109" alt="image" src="https://github.com/user-attachments/assets/6d1581fc-db53-4fe0-8522-5facb0b065e7" />
 
-Rationale: Duration varies widely by mission type (photography: ~20 min, spraying: ~30 min). Fleet-wide imputation would bias results. Group-wise imputation preserves mission-type-specific behavior.
+###Removing outliers and invalid sensor readings
+Dropped or nullified physically impossible values that indicate sensor error or data entry mistakes.
 
-Effect: Filled 2 missing durations (D030, D086).
+```python
+# Altitude > 1000m is beyond consumer drone legal limits (D516 = 8444m)
+df.loc[df['Altitude (meters)'] > 1000, 'Altitude (meters)'] = np.nan
 
+# Negative payload weight (D029, D085) — sensor error
+df.loc[df['Actual Carry Weight (kg)'] < 0, 'Actual Carry Weight (kg)'] = np.nan
 
-Parsing dates
-Converted Flight Date from string to datetime so time-series ordering and seasonal analysis are possible.
-<img width="762" height="171" alt="image" src="https://github.com/user-attachments/assets/c01a3cfd-762f-4fdb-b37a-7cea3a232303" />
+# Wind speed > 20 m/s exceeds safe drone operating limits (D819 = 12.9)
+df.loc[df['Wind Speed (m/s)'] > 20, 'Wind Speed (m/s)'] = np.nan
 
-Effect: All dates parsed successfully; no rows dropped.
+# Battery must be in [0, 100]
+df = df[df['Battery Remaining (%)'].between(0, 100)]
+```
+Effect: Nullified 1 altitude outlier, 2 negative payloads, 1 wind outlier, 0 battery violations.
 
-Removing duplicates
-Kept only the first occurrence of duplicate flights. Duplicates were identified by all columns except Drone ID, because the raw file contained several rows where the same flight was logged under multiple IDs (e.g., D008/D100/D114 all describe the same film-production flight).
-<img width="683" height="122" alt="image" src="https://github.com/user-attachments/assets/3a2da2ef-7688-49a0-becf-054957025051" />
-Rationale: Duplicate entries distort every downstream statistic — mean battery, correlation coefficients, and model training. Removing them is essential for valid inference.
-
+###Removing duplicates
+```python
+# Key = all columns except Drone ID
+key_cols = [c for c in df.columns if c != 'Drone ID']
+df = df.drop_duplicates(subset=key_cols, keep='first')
+```
 Effect: Removed approximately 15 duplicate flight records (including the 6 repeat rows of D249 and the D058/D092/D093 etc. re-logged pairs).
 
-Flagging overweight flights instead of deleting them
-Overweight flights (payload > max carry weight) are analytically important — they are the failure cases that prove the hard limit. They were flagged with a boolean column but not removed.
+###Flagging overweight flights instead of deleting them
 
-<img width="790" height="88" alt="image" src="https://github.com/user-attachments/assets/d9ea8d10-7209-4b24-81c2-9d13a972123d" />
-
+```python
+df['Overweight'] = df['Actual Carry Weight (kg)'] > df['Max Carry Weight (kg)']
+print(df['Overweight'].value_counts())
+```
 Effect: Flagged 3 overweight flights (D026, D033, D084) for use in Section 3.
+
+
 
 Final row count
 Stage	Rows remaining
