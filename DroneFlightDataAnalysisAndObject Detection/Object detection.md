@@ -98,22 +98,6 @@ mAP@0.5 and mAP@0.5:0.95 converge to 0.784 and 0.503 respectively. The large gap
 
 
 
-## 🚀 Reproduce
-
-```bash
-pip install ultralytics kagglehub
-```
-
-```python
-import kagglehub, glob, os, yamlfrom ultralytics import YOLO# 1. Download datapath = kagglehub.dataset_download(    "pandrii000/hituav-a-highaltitude-infrared-thermal-dataset")# 2. Point config at ityaml_path = glob.glob(os.path.join(path, "**/dataset.yaml"),                      recursive=True)[0]# 3. Trainmodel = YOLO("yolov8n.pt")model.train(data=yaml_path, epochs=50, imgsz=640, batch=16,            name="hituav_yolov8n")# 4. Evaluate on held-out test splitmodel = YOLO("runs/detect/hituav_yolov8n/weights/best.pt")metrics = model.val(data=yaml_path, split="test")print(f"mAP50: {metrics.box.map50:.3f}")# 5. Detectresults = model.predict("your_thermal_image.png", conf=0.35)
-```
-
-
-
-
-
-
-
 
 ## 🧠 Key Learnings
 
