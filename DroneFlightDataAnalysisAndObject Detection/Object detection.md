@@ -78,15 +78,7 @@ This project trains and evaluates a detector purpose-built for that regime, on a
 ## Confusion matrix
 <img width="3000" height="2250" alt="confusion_matrix" src="https://github.com/user-attachments/assets/dba5b84a-6c9a-495c-b295-8a3c34c4871d" />
 
-Normalized confusion matrix on the validation split. Rows = ground truth, columns = predictions; the background row/column captures missed detections (false negatives) and phantom detections (false positives).
-
-### Reading the diagonal:
-
-Car is nearly perfectly separated — its large, uniform, high-contrast thermal signature makes it the most distinctive object class in infrared imagery.
-Person holds a strong diagonal but leaks the most into background (missed detections). From 60–130 m altitude a pedestrian occupies only a handful of pixels, so dim or distant targets can vanish entirely — this is the model's dominant failure mode and the reason recall (0.71) trails precision (0.85).
-Person ↔ Bicycle is the main inter-class confusion: a cyclist's warm torso dominates the signature, so a ridden bicycle looks nearly identical to a pedestrian in thermal space.
-OtherVehicle and DontCare rows are statistically unreliable (12 and 7 validation instances respectively) — apparent errors there reflect sample scarcity, not model behavior.
-The background column quantifies the recall ceiling per class — which is why confidence-threshold tuning matters more here than any architectural change.
+Car is nearly perfectly separated (701/719 correct).   Person holds the highest diagonal count (1,080) but accounts for the most missed detections (88 lost to background).   Inter-class confusion between Person and Bicycle is negligible (only 1 cross-classification instance); the main failure mode is false positives from background regions (272 predicted Person, 195 predicted Bicycle).   OtherVehicle and DontCare are statistically unreliable due to extreme sample scarcity (12 and 7 true instances). 
 
 ## Training curves
 
