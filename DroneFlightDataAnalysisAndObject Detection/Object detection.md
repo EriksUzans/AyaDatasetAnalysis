@@ -38,7 +38,9 @@ This project trains and evaluates a detector purpose-built for that regime, on a
 
 ### Qualitative results
 
-![Predictions on held-out thermal scenes](https://chat.z.ai/c/assets/demo_grid.png)_Model predictions on test images — day and night scenes, mixed altitude and perspective. Boxes drawn with class + confidence._
+<img width="1589" height="815" alt="image" src="https://github.com/user-attachments/assets/682ead19-3340-4adf-993c-67333563adf9" />
+<img width="1146" height="1589" alt="image" src="https://github.com/user-attachments/assets/ee0854fc-1d65-42b7-9595-a076b4d9f647" />
+
 
 ## 📁 Dataset — HIT-UAV
 
@@ -71,6 +73,39 @@ This project trains and evaluates a detector purpose-built for that regime, on a
 |Hardware|Google Colab, T4 GPU (~1.5 h)|
 |Augmentation|mosaic, fliplr 0.5, HSV jitter, erasing 0.4|
 
+
+
+## Confusion matrix
+<img width="3000" height="2250" alt="confusion_matrix" src="https://github.com/user-attachments/assets/dba5b84a-6c9a-495c-b295-8a3c34c4871d" />
+
+Normalized confusion matrix on the validation split. Rows = ground truth, columns = predictions; the background row/column captures missed detections (false negatives) and phantom detections (false positives).
+
+### Reading the diagonal:
+
+Car is nearly perfectly separated — its large, uniform, high-contrast thermal signature makes it the most distinctive object class in infrared imagery.
+Person holds a strong diagonal but leaks the most into background (missed detections). From 60–130 m altitude a pedestrian occupies only a handful of pixels, so dim or distant targets can vanish entirely — this is the model's dominant failure mode and the reason recall (0.71) trails precision (0.85).
+Person ↔ Bicycle is the main inter-class confusion: a cyclist's warm torso dominates the signature, so a ridden bicycle looks nearly identical to a pedestrian in thermal space.
+OtherVehicle and DontCare rows are statistically unreliable (12 and 7 validation instances respectively) — apparent errors there reflect sample scarcity, not model behavior.
+The background column quantifies the recall ceiling per class — which is why confidence-threshold tuning matters more here than any architectural change.
+
+## Training curves
+
+<img width="2400" height="1200" alt="results" src="https://github.com/user-attachments/assets/a5fc7e16-dcb4-4dbb-92b0-ae6391716e4f" />
+
+
+### Losses (box, classification, DFL) and metrics tracked per epoch across the train and validation splits.
+
+All three loss terms fall steeply within the first ~10 epochs and plateau by mid-training — the COCO-pretrained backbone transfers well to thermal imagery (Bicycle, Car and Person head weights mapped directly onto this task).
+Validation loss tracks training loss without divergence at 50 epochs — no overfitting yet, implying the model is under-trained rather than over-trained. Additional capacity (YOLOv8s) or resolution (imgsz=960) should buy further gains before regularization becomes necessary.
+mAP@0.5 and mAP@0.5:0.95 converge to 0.784 and 0.503 respectively. The large gap between them is characteristic of small-object detection: at strict IoU thresholds, a 2–3 px localization slip on a ~10 px-wide ground-truth box can drop a detection from IoU 0.8 to below 0.6 — penalizing mAP@0.5:0.95 heavily while leaving mAP@0.5 untouched.
+
+
+
+
+
+
+
+
 ## 🚀 Reproduce
 
 ```bash
@@ -80,6 +115,13 @@ pip install ultralytics kagglehub
 ```python
 import kagglehub, glob, os, yamlfrom ultralytics import YOLO# 1. Download datapath = kagglehub.dataset_download(    "pandrii000/hituav-a-highaltitude-infrared-thermal-dataset")# 2. Point config at ityaml_path = glob.glob(os.path.join(path, "**/dataset.yaml"),                      recursive=True)[0]# 3. Trainmodel = YOLO("yolov8n.pt")model.train(data=yaml_path, epochs=50, imgsz=640, batch=16,            name="hituav_yolov8n")# 4. Evaluate on held-out test splitmodel = YOLO("runs/detect/hituav_yolov8n/weights/best.pt")metrics = model.val(data=yaml_path, split="test")print(f"mAP50: {metrics.box.map50:.3f}")# 5. Detectresults = model.predict("your_thermal_image.png", conf=0.35)
 ```
+
+
+
+
+
+
+
 
 ## 🧠 Key Learnings
 
