@@ -1,3 +1,5 @@
+Live,Interactable dashboard : https://droneflighteriksuzans.netlify.app
+
 In drone operations, remaining battery life is a critical safety and operational constraint. Unexpected battery depletion can lead to aborted missions, lost equipment, or safety incidents. Currently, operators may rely on manufacturer estimates or general rules of thumb, but these do not account for the complex, real-world interplay of environmental conditions and mission-specific parameters. 
 
 ## Research Objective
